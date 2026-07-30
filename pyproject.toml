@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "navigraph-analysis"
+version = "0.1.0"
+description = "Standalone, config-driven analysis pipelines for NaviGraph dual-root-tree maze experiments (behavioral + neural)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Almog Meir" }]
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "networkx>=3.0",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+    "seaborn>=0.12",
+    "h5py>=3.8",
+    "tables>=3.8",          # PyTables backend for pd.read_hdf on DLC .h5
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# Neural / state-modelling layer. Kept optional so the behavioral core installs
+# and imports with a minimal dependency set.
+neural = [
+    "hmmlearn>=0.3",
+    "scikit-learn>=1.2",
+    "IOHMM>=0.0.7",
+]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.1",
+]
+
+[project.scripts]
+nga = "navigraph_analysis.pipelines.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["navigraph_analysis"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"

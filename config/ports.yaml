@@ -1,0 +1,45 @@
+# Reward-port configuration for the dual-root-tree maze.
+# ------------------------------------------------------------------------------
+# Extracted verbatim from change_of_mind.ipynb / decision_point_velocity_analysis.ipynb.
+# The physical Target7/Target8 wiring was swapped between the R59 and R55 leaf
+# nodes on 2025-09-07, so the port map is date-dependent.
+# `ports.py::get_port_map(date)` selects `before`/`after` using `switch_date`.
+# ------------------------------------------------------------------------------
+
+switch_date: "2025-09-07"   # sessions on/after this date use `after`
+
+# node_name -> Target label (1-indexed target string)
+port_map:
+  before:
+    R522: Target1
+    R526: Target2
+    L56:  Target3
+    L510: Target4
+    L521: Target5
+    L525: Target6
+    R55:  Target7
+    R59:  Target8
+  after:
+    R522: Target1
+    R526: Target2
+    L56:  Target3
+    L510: Target4
+    L521: Target5
+    L525: Target6
+    R59:  Target7
+    R55:  Target8
+
+# Target-number pairs that share a physical maze arm ("patch").
+patch_pairs:
+  - [1, 2]
+  - [3, 4]
+  - [5, 6]
+  - [7, 8]
+
+# Within-patch IMPORTANT decision nodes: the graph junction separating the two
+# goals of each patch. Invariant to the R55/R59 label swap.
+within_patch_nodes:
+  R11: { patch: [1, 2], patch_children: [R22, R23], parent: R0 }
+  L10: { patch: [3, 4], patch_children: [L20, L21], parent: L0 }
+  L11: { patch: [5, 6], patch_children: [L22, L23], parent: L0 }
+  R10: { patch: [7, 8], patch_children: [R20, R21], parent: R0 }

@@ -1,0 +1,48 @@
+# NaviGraph-Analysis project configuration
+# ------------------------------------------------------------------------------
+# This single file replaces every hard-coded absolute path that used to live
+# inside the analysis notebooks. Copy it to `config/project.local.yaml` (which is
+# gitignored) and edit the paths for your machine, or edit this file directly.
+#
+# All relative paths are resolved relative to this file's directory's PARENT
+# (the repo root). Absolute paths are used as-is. `~` is expanded.
+# ------------------------------------------------------------------------------
+
+# Subjects present in the dataset. Used for discovery + output organization.
+subjects:
+  - NPC1
+
+# Video / recording constants shared across sessions.
+constants:
+  fps: 40           # maze video frame rate (Hz)
+  fs: 30000         # Neuropixels sampling rate (Hz)
+  maze_start: 30    # first BPOD trial index that belongs to the maze block
+  maze_end: 767     # last  BPOD trial index (inclusive) -> 737 maze trials
+
+paths:
+  # --- Required (behavioral core) ---------------------------------------------
+  # NaviGraph pipeline output: per-session `raw_session_data_*.pkl` +
+  # `session_metrics_*.pkl`, discovered under <navigraph_output>/<DD_MM_YYYY>/.
+  navigraph_output: ~/Documents/M.Sc/Project/Input/Navigraph_Raw_Data
+
+  # Graph structure pickle (mappings['nodes'] / mappings['edges']).
+  graph_pkl: ~/Documents/GitHub/NaviGraph/FullMazeGrid.pkl
+
+  # Where the pipeline writes (and re-reads) canonical intermediate tables and
+  # all analysis products. Organized as <intermediate>/<SUBJECT>/<YYYY-MM-DD>/.
+  intermediate: ./outputs
+
+  # --- Optional (only needed for the modality that uses them) -----------------
+  # DLC pose .h5 files (if not already merged into the NaviGraph output).
+  dlc: ~/Documents/GitHub/NaviGraph/examples/dual_root_tree/resources/maze_trackings
+
+  # Session still images / videos, keyed by <SUBJECT>_<YYYY_MM_DD>.
+  maze_images: ~/Documents/GitHub/NaviGraph/examples/dual_root_tree/resources/maze_images
+  videos: ~/Documents/GitHub/NaviGraph/examples/dual_root_tree/resources/maze_videos
+
+  # --- Optional (neural layer) ------------------------------------------------
+  spikes: ~/Documents/M.Sc/Project/SpikesData          # <spikes>/<DD_MM_YYYY>/
+  bpod: ~/Documents/M.Sc/Project/BPODData              # BPOD Session Data .mat
+
+# Path to the reward-port configuration (see config/ports.yaml).
+ports_config: ./config/ports.yaml

@@ -60,7 +60,7 @@ def build_tables(
         ``'auto'`` (default) — raw if available, else an existing table.
     """
     port_config = port_config or PortConfig.load(cfg.ports_config)
-    port_map = port_config.port_map(session.date)
+    port_map = port_config.port_map(session.subject, session.date)
     G, _pos = iograph.load_maze_graph(cfg.graph_pkl)
 
     summary_df = _load_summary(session, cfg, summary_source)
@@ -113,7 +113,7 @@ def run_behavior(
 ) -> Dict[str, pd.DataFrame]:
     """Compute turn / decision-point / change-of-mind / state-feature products."""
     port_config = port_config or PortConfig.load(cfg.ports_config)
-    port_map = port_config.port_map(session.date)
+    port_map = port_config.port_map(session.subject, session.date)
     G, _ = iograph.load_maze_graph(cfg.graph_pkl)
 
     node_df = tables["node_df"]

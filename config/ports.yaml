@@ -1,45 +1,82 @@
 # Reward-port configuration for the dual-root-tree maze.
 # ------------------------------------------------------------------------------
-# Extracted verbatim from change_of_mind.ipynb / decision_point_velocity_analysis.ipynb.
-# The physical Target7/Target8 wiring was swapped between the R59 and R55 leaf
-# nodes on 2025-09-07, so the port map is date-dependent.
-# `ports.py::get_port_map(date)` selects `before`/`after` using `switch_date`.
+# Mirrors PORT_LAYOUTS in align_frames_trials.ipynb (the authoritative source).
+#
+# Each subject has a list of layout *periods*: (from, until, ports). Dates are
+# ISO 'YYYY-MM-DD', inclusive; null means open-ended. The first period whose
+# window contains the session date wins, so a mouse re-wired mid-experiment just
+# gets another period. `ports` maps a 1-indexed BPOD port number to its leaf node
+# and parent node(s). To add a mouse, add a subject key here — nothing else needs
+# editing. `ports.py::PortConfig` resolves these per (subject, date).
 # ------------------------------------------------------------------------------
 
-switch_date: "2025-09-07"   # sessions on/after this date use `after`
-
-# node_name -> Target label (1-indexed target string)
-port_map:
-  before:
-    R522: Target1
-    R526: Target2
-    L56:  Target3
-    L510: Target4
-    L521: Target5
-    L525: Target6
-    R55:  Target7
-    R59:  Target8
-  after:
-    R522: Target1
-    R526: Target2
-    L56:  Target3
-    L510: Target4
-    L521: Target5
-    L525: Target6
-    R59:  Target7
-    R55:  Target8
-
-# Target-number pairs that share a physical maze arm ("patch").
-patch_pairs:
+# Reward-port pairs the animal alternates between, as BPOD port numbers (so they
+# survive re-wiring). Override for one mouse via port_pairs_by_subject.
+port_pairs:
   - [1, 2]
   - [3, 4]
   - [5, 6]
   - [7, 8]
+port_pairs_by_subject: {}
+
+# Maze structure: parent node -> its grandparent neighbours. A property of the
+# maze graph rather than the wiring, so shared by all subjects.
+grandparents:
+  R411: [R523, R35]
+  R413: [R527, R36]
+  L43:  [L57,  L31]
+  L45:  [L511, L32]
+  L410: [L520, L35]
+  L412: [L524, L36]
+  R44:  [R58,  R32]
+  R42:  [R54,  R31]
 
 # Within-patch IMPORTANT decision nodes: the graph junction separating the two
-# goals of each patch. Invariant to the R55/R59 label swap.
+# goals of each patch. Invariant to any leaf label swap.
 within_patch_nodes:
   R11: { patch: [1, 2], patch_children: [R22, R23], parent: R0 }
   L10: { patch: [3, 4], patch_children: [L20, L21], parent: L0 }
   L11: { patch: [5, 6], patch_children: [L22, L23], parent: L0 }
   R10: { patch: [7, 8], patch_children: [R20, R21], parent: R0 }
+
+# Per-subject, date-ranged port layouts. port number -> {leaf, parents}.
+port_layouts:
+  NPC1:
+    # Up to 2025-09-06 — Port 7 = R55, Port 8 = R59
+    - from: null
+      until: "2025-09-06"
+      ports:
+        1: { leaf: R522, parents: [R411] }
+        2: { leaf: R526, parents: [R413] }
+        3: { leaf: L56,  parents: [L43] }
+        4: { leaf: L510, parents: [L45] }
+        5: { leaf: L521, parents: [L410] }
+        6: { leaf: L525, parents: [L412] }
+        7: { leaf: R55,  parents: [R42] }
+        8: { leaf: R59,  parents: [R44] }
+    # From 2025-09-07 — Ports 7 and 8 swapped
+    - from: "2025-09-07"
+      until: null
+      ports:
+        1: { leaf: R522, parents: [R411] }
+        2: { leaf: R526, parents: [R413] }
+        3: { leaf: L56,  parents: [L43] }
+        4: { leaf: L510, parents: [L45] }
+        5: { leaf: L521, parents: [L410] }
+        6: { leaf: L525, parents: [L412] }
+        7: { leaf: R59,  parents: [R44] }
+        8: { leaf: R55,  parents: [R42] }
+
+  # From 2026-04-01 — same maze as NPC1, Ports 3 and 4 swapped
+  NPC4:
+    - from: "2026-04-01"
+      until: null
+      ports:
+        1: { leaf: R522, parents: [R411] }
+        2: { leaf: R526, parents: [R413] }
+        3: { leaf: L510, parents: [L45] }
+        4: { leaf: L56,  parents: [L43] }
+        5: { leaf: L521, parents: [L410] }
+        6: { leaf: L525, parents: [L412] }
+        7: { leaf: R59,  parents: [R44] }
+        8: { leaf: R55,  parents: [R42] }

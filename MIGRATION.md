@@ -48,7 +48,8 @@ remain the reference of record.
 |---|---|
 | session/date parsing (both DD_MM_YYYY and YYYY_MM_DD) | `session.py` (`parse_date`, `Session`) |
 | graph construction from `FullMazeGrid.pkl` | `io/graph.py` (`load_maze_graph`) + `behavior/states.build_graph_from_full_maze` alias |
-| reward-port map + 2025-09-07 R55/R59 swap + patch pairs | `config/ports.yaml` + `ports.py` (`PortConfig`) |
+| per-subject port layouts (`PORT_LAYOUTS`/`resolve_port_layout`, `align_frames_trials.ipynb`), date-ranged periods, R55/R59 & NPC4 3/4 swaps, port pairs, grandparents | `config/ports.yaml` + `ports.py` (`PortConfig.port_map(subject, date)`) |
+| subject-nested paths (`outputs/<subject>/<date>/`) + per-session calibration (`transform_matrix/<YYYY_MM_DD>.npy`) | `config.py` + `session.py` (`output_dir`, `navigraph_dir`, `calibration_npy`, `graph_mapping_pkl`) |
 | spike loading (`loadmat`, `cluster_info`, `_unwrap_mat`, good/mua units) | `io/spikes.py` (`load_spikes`) |
 | `summary_df` MultiIndex column accessors | `columns.py` |
 | hard-coded absolute paths | `config/project.yaml` + `config.py` (`ProjectConfig`) |

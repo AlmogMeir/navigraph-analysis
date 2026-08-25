@@ -35,16 +35,25 @@ the paths for your machine. That single file replaces every hard-coded path the
 notebooks used:
 
 ```yaml
-subjects: [NPC1]
+subjects: [NPC1, NPC4]
 constants: { fps: 40, fs: 30000, maze_start: 30, maze_end: 767 }
 paths:
-  navigraph_output: ~/.../Navigraph_Raw_Data   # <DD_MM_YYYY>/raw_session_data_*.pkl
+  navigraph_output: ~/.../Navigraph_Raw_Data   # <subject>/<DD_MM_YYYY>/raw_session_data_*.pkl
   graph_pkl:        ~/.../FullMazeGrid.pkl
-  intermediate:     ./outputs                   # all products go here
+  intermediate:     ./outputs                   # <subject>/<YYYY-MM-DD>/ — all products
+  maze_mappings:    ~/.../maze_mappings         # <subject>_<YYYY_MM_DD>.pkl
+  calibration:      ~/.../transform_matrix      # per-session <YYYY_MM_DD>.npy
   spikes:           ~/.../SpikesData            # optional (neural)
   bpod:             ~/.../BPODData              # optional
-ports_config: ./config/ports.yaml               # reward-port map + 2025-09-07 swap
+ports_config: ./config/ports.yaml               # per-subject, date-ranged port layouts
 ```
+
+Paths are **subject-nested**: raw output, spikes and processed tables live under
+a `<subject>/` subfolder (a legacy flat layout still works as a fallback). The
+reward-port map is a **parameter** resolved per `(subject, date)` from
+`config/ports.yaml` — each subject has date-ranged layout periods, so re-wirings
+(NPC1's 2025-09-07 R55/R59 swap) and different mice (NPC4's ports 3/4 swapped)
+are handled automatically.
 
 ## Run
 

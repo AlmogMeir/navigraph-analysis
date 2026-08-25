@@ -78,14 +78,28 @@ class Session:
         return f"{self.subject}_{self.folder_ddmmyyyy}"     # NPC1_21_08_2025
 
     # -- input directories ----------------------------------------------------
+    def _session_subdir(self, base: Optional[Path]) -> Optional[Path]:
+        """``<base>/<subject>/<DD_MM_YYYY>`` (subject-nested), falling back to the
+        flat ``<base>/<DD_MM_YYYY>`` when the subject subfolder is absent.
+
+        Paths were re-organized into per-subject subfolders; this keeps both
+        layouts working during the migration.
+        """
+        if base is None:
+            return None
+        nested = base / self.subject / self.folder_ddmmyyyy
+        flat = base / self.folder_ddmmyyyy
+        if nested.exists() or not flat.exists():
+            return nested
+        return flat
+
     @property
     def navigraph_dir(self) -> Path:
-        return self.cfg.navigraph_output_dir / self.folder_ddmmyyyy
+        return self._session_subdir(self.cfg.navigraph_output_dir)
 
     @property
     def spikes_dir(self) -> Optional[Path]:
-        base = self.cfg.spikes_dir
-        return None if base is None else base / self.folder_ddmmyyyy
+        return self._session_subdir(self.cfg.spikes_dir)
 
     def dlc_h5(self, suffix: str = "_corrected") -> Optional[Path]:
         """Resolve the DLC pose file for this session, if a dlc dir is configured."""
@@ -102,6 +116,27 @@ class Session:
     def video(self) -> Optional[Path]:
         base = self.cfg.videos_dir
         return None if base is None else base / f"{self.file_stem}.mp4"
+
+    def graph_mapping_pkl(self) -> Optional[Path]:
+        """Per-session graph mapping ``maze_mappings/<subject>_<YYYY_MM_DD>.pkl``."""
+        base = self.cfg.paths.get("maze_mappings")
+        return None if base is None else base / f"{self.file_stem}.pkl"
+
+    def calibration_npy(self) -> Optional[Path]:
+        """Per-session calibration ``transform_matrix/<YYYY_MM_DD>.npy``.
+
+        Calibration became per-session (a ``transform_matrix/`` directory of
+        dated ``.npy`` files); falls back to a legacy flat ``transform_matrix.npy``
+        sitting next to that directory.
+        """
+        base = self.cfg.paths.get("calibration")
+        if base is None:
+            return None
+        dated = base / f"{self.date_yyyy_mm_dd}.npy"
+        if dated.exists():
+            return dated
+        legacy = base.parent / "transform_matrix.npy"
+        return dated if not legacy.exists() else legacy
 
     # -- output directory -----------------------------------------------------
     @property
@@ -128,8 +163,8 @@ def discover_sessions(
 
     Unions two sources so both un-processed and already-processed sessions are
     found:
-    - raw NaviGraph output: ``<navigraph_output>/<DD_MM_YYYY>/`` folders
-      (applies to every configured subject);
+    - raw NaviGraph output: ``<navigraph_output>/<subject>/<DD_MM_YYYY>/`` folders
+      (subject-nested), or the legacy flat ``<navigraph_output>/<DD_MM_YYYY>/``;
     - processed output: ``<intermediate>/<subject>/<YYYY-MM-DD>/`` folders.
     """
     subjects = [subject] if subject else cfg.subjects
@@ -141,18 +176,26 @@ def discover_sessions(
             seen.add((subj, date))
             sessions.append(Session(subject=subj, date=date, cfg=cfg))
 
-    # Source 1: raw NaviGraph output (subject-agnostic date folders).
-    raw_root = cfg.paths.get("navigraph_output")
-    if raw_root and raw_root.exists():
-        for child in raw_root.iterdir():
+    def _scan_date_folders(root: Path, subj: str) -> None:
+        for child in root.iterdir():
             if not child.is_dir():
                 continue
             try:
                 date = parse_date(child.name)
             except ValueError:
                 continue
-            for subj in subjects:
-                _add(subj, date)
+            _add(subj, date)
+
+    # Source 1: raw NaviGraph output — prefer per-subject subfolders, fall back
+    # to flat date folders shared across subjects.
+    raw_root = cfg.paths.get("navigraph_output")
+    if raw_root and raw_root.exists():
+        for subj in subjects:
+            subj_root = raw_root / subj
+            if subj_root.is_dir():
+                _scan_date_folders(subj_root, subj)
+            else:
+                _scan_date_folders(raw_root, subj)
 
     # Source 2: already-processed sessions under the intermediate dir.
     inter = cfg.paths.get("intermediate")

@@ -9,8 +9,11 @@
 # ------------------------------------------------------------------------------
 
 # Subjects present in the dataset. Used for discovery + output organization.
+# Each subject gets its own subfolder under the data paths below and under the
+# output tree (<intermediate>/<subject>/<YYYY-MM-DD>/).
 subjects:
   - NPC1
+  - NPC4
 
 # Video / recording constants shared across sessions.
 constants:
@@ -22,7 +25,8 @@ constants:
 paths:
   # --- Required (behavioral core) ---------------------------------------------
   # NaviGraph pipeline output: per-session `raw_session_data_*.pkl` +
-  # `session_metrics_*.pkl`, discovered under <navigraph_output>/<DD_MM_YYYY>/.
+  # `session_metrics_*.pkl`. Discovered under <navigraph_output>/<subject>/<DD_MM_YYYY>/
+  # (subject-nested); a legacy flat <navigraph_output>/<DD_MM_YYYY>/ still works.
   navigraph_output: ~/Documents/M.Sc/Project/Input/Navigraph_Raw_Data
 
   # Graph structure pickle (mappings['nodes'] / mappings['edges']).
@@ -39,6 +43,13 @@ paths:
   # Session still images / videos, keyed by <SUBJECT>_<YYYY_MM_DD>.
   maze_images: ~/Documents/GitHub/NaviGraph/examples/dual_root_tree/resources/maze_images
   videos: ~/Documents/GitHub/NaviGraph/examples/dual_root_tree/resources/maze_videos
+
+  # Per-session graph mappings (<SUBJECT>_<YYYY_MM_DD>.pkl).
+  maze_mappings: ~/Documents/GitHub/NaviGraph/examples/dual_root_tree/resources/maze_mappings
+
+  # Per-session calibration: a directory of dated matrices (<YYYY_MM_DD>.npy),
+  # with a legacy flat transform_matrix.npy alongside as fallback.
+  calibration: ~/Documents/GitHub/NaviGraph/examples/dual_root_tree/resources/transform_matrix
 
   # --- Optional (neural layer) ------------------------------------------------
   spikes: ~/Documents/M.Sc/Project/SpikesData          # <spikes>/<DD_MM_YYYY>/

@@ -1,4 +1,4 @@
-"""Plotting: shared style + maze overlays + rasters + the trial-context figure."""
+"""Plotting: shared style + maze overlays + rasters + cross-session annotation."""
 
 from .style import (
     TURN_COLORS,
@@ -15,6 +15,7 @@ from .raster import (
     plot_rolling_performance,
 )
 from .trial_context import trial_context_figure
+from .sessions import annotate_date_ranges, mark_sunday_ticks, annotation_blocks
 
 __all__ = [
     "TURN_COLORS",
@@ -29,4 +30,7 @@ __all__ = [
     "plot_reward_raster",
     "plot_rolling_performance",
     "trial_context_figure",
+    "annotate_date_ranges",
+    "mark_sunday_ticks",
+    "annotation_blocks",
 ]

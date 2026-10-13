@@ -258,6 +258,10 @@ def build_node_df(
     df_fixed = fix_edge_bounces(traversal_df, bounce_threshold)
     nodes = df_fixed[df_fixed["location_type"] == "node"].copy().reset_index(drop=True)
 
+    # Merge consecutive visits to the same node, matching
+    # navigraph.analysis.traversal_builder.build_node_df. Note this also merges a
+    # node -> edge -> same-node excursion, however long the excursion was; see
+    # KNOWN_DIFFERENCES.md for the measured frequency and why it is left as-is.
     nodes["_stay_id"] = (
         nodes["headstage_graph_node"] != nodes["headstage_graph_node"].shift(1)
     ).cumsum()

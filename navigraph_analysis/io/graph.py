@@ -16,7 +16,7 @@ from __future__ import annotations
 import pickle
 import re
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Sequence, Tuple
 
 import networkx as nx
 import numpy as np
@@ -100,10 +100,85 @@ def maze_level(node_id: object, max_inner_depth: int) -> Optional[int]:
     return None if d is None else max_inner_depth - d + 1
 
 
+# ---------------------------------------------------------------------------
+# Maze structure: tree levels and reward patches
+# ---------------------------------------------------------------------------
+# Both are read off the graph rather than hard-coded, so a re-wired port layout
+# or a relabelled leaf changes nothing here. Added for the patch-split analyses
+# in change_of_mind.ipynb ("in-patch vs out-of-patch", "speed by tree level").
+
+#: The two roots of the dual-root tree. They are the corridor between patches.
+ROOTS = ("L0", "R0")
+#: The level-1 nodes; each is the root of one reward patch (a port pair).
+PATCH_ROOTS = ("L10", "L11", "R10", "R11")
+
+
+def level_of(G: nx.Graph, roots: Tuple[str, ...] = ROOTS) -> Dict[str, int]:
+    """node -> tree depth from the nearer root (roots = 0 ... leaf ports = 5).
+
+    The maze is a perfectly balanced tree, so every leaf comes out at the same
+    level. This is a reward-agnostic grouping: it says how deep in the tree a node
+    sits, not which port it belongs to.
+    """
+    present = [r for r in roots if r in G]
+    if not present:
+        raise KeyError(f"None of the roots {roots} are in the graph")
+    dists = [nx.single_source_shortest_path_length(G, r) for r in present]
+    return {n: min(d[n] for d in dists if n in d)
+            for n in G.nodes if any(n in d for d in dists)}
+
+
+def patch_of(
+    G: nx.Graph,
+    roots: Tuple[str, ...] = ROOTS,
+    patch_roots: Tuple[str, ...] = PATCH_ROOTS,
+) -> Dict[str, Optional[str]]:
+    """node -> its patch label (a level-1 node), or ``'corridor'`` for the roots.
+
+    Removing the two roots splits the maze into exactly four sub-trees, each
+    rooted at one level-1 node and holding one reward-port pair. That level-1 node
+    *is* the patch; the roots themselves are the corridor connecting the patches.
+    """
+    H = G.copy()
+    H.remove_nodes_from([r for r in roots if r in H])
+    out: Dict[str, Optional[str]] = {}
+    wanted = set(patch_roots)
+    for comp in nx.connected_components(H):
+        label = next(iter(wanted & comp), None)
+        for n in comp:
+            out[n] = label
+    for r in roots:
+        if r in G:
+            out[r] = "corridor"
+    return out
+
+
+def classify_patch(
+    seq_nodes: Sequence[str],
+    patch_map: Dict[str, Optional[str]],
+) -> str:
+    """``'in-patch'`` if the trajectory stays inside one patch, else ``'out-of-patch'``.
+
+    A trajectory is in-patch only when it never touches the corridor and every
+    node belongs to the same patch sub-tree; crossing the corridor or visiting a
+    second patch makes it out-of-patch.
+    """
+    pset = {patch_map.get(n) for n in seq_nodes}
+    non_corridor = {p for p in pset if p not in ("corridor", None)}
+    if "corridor" not in pset and len(non_corridor) == 1:
+        return "in-patch"
+    return "out-of-patch"
+
+
 __all__ = [
     "load_maze_graph",
     "node_depth",
     "is_leaf",
     "node_side",
     "maze_level",
+    "ROOTS",
+    "PATCH_ROOTS",
+    "level_of",
+    "patch_of",
+    "classify_patch",
 ]

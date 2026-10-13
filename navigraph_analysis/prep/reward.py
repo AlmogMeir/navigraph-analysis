@@ -24,9 +24,11 @@ def build_reward_table(
 ) -> pd.DataFrame:
     """One row per reward delivery.
 
-    Columns: ``trial_idx, frame_idx_global, reward_size, port_node, port_target``.
+    Columns: ``trial_idx, frame_idx_global, reward_size, port_node, port_target``,
+    plus ``reward_port`` when *summary_df* carries the BPOD port number.
     ``port_node`` is the graph node occupied at the reward frame; ``port_target``
-    is its Target label from *port_map* (if provided).
+    is its Target label from *port_map* (if provided). ``reward_port`` is the port
+    BPOD says paid, which is ground truth rather than an observation.
     """
     frame_col = resolve(summary_df, "frame_idx_global")
     reward_col = resolve(summary_df, "reward")
@@ -34,6 +36,11 @@ def build_reward_table(
     trial_col = try_resolve(summary_df, "trial_idx")
     node_col = try_resolve(summary_df, bodypart, "graph_node")
     reward_node_col = try_resolve(summary_df, "reward_node")
+    # The 1-indexed BPOD port, when the ingest stage recorded it. This is the
+    # ground truth the reward-based location correction needs: port_node below
+    # is the node tracking *says* the animal was on, which is the thing that may
+    # be wrong.
+    port_num_col = try_resolve(summary_df, "reward_port")
 
     rew = pd.to_numeric(summary_df[reward_col], errors="coerce").fillna(0)
     mask = rew > 0
@@ -58,6 +65,9 @@ def build_reward_table(
         out["port_target"] = out["port_node"].map(port_map)
     else:
         out["port_target"] = np.nan
+    if port_num_col is not None:
+        out["reward_port"] = pd.to_numeric(
+            ev[port_num_col], errors="coerce").to_numpy()
     return out.reset_index(drop=True)
 
 

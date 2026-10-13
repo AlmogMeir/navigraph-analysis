@@ -53,18 +53,48 @@ def load_session_metrics(session: Session) -> object:
         return pickle.load(fh)
 
 
-def _coerce_frame(obj: object) -> pd.DataFrame:
-    """NaviGraph raw pickles are sometimes a DataFrame, sometimes a dict wrapper."""
+#: Keys a NaviGraph raw pickle may store its frame table under, at any nesting depth.
+_FRAME_KEYS = ("summary_df", "dataframe", "df", "data")
+
+
+def _coerce_frame(obj: object, _depth: int = 0) -> pd.DataFrame:
+    """Extract the frame table from a NaviGraph raw pickle.
+
+    The layout has varied across NaviGraph versions. Current output nests one
+    level per session::
+
+        {"session_<subject>_<DD_MM_YYYY>": {"dataframe": <DataFrame>,
+                                            "session_path": str},
+         "timestamp": str, "experiment_path": str}
+
+    Older output stored the DataFrame at the top level, or under one of
+    :data:`_FRAME_KEYS`. All are accepted; a multi-session pickle is rejected
+    rather than guessed at.
+    """
     if isinstance(obj, pd.DataFrame):
         return obj
-    if isinstance(obj, dict):
-        for key in ("summary_df", "dataframe", "df", "data"):
+    if isinstance(obj, dict) and _depth < 3:
+        for key in _FRAME_KEYS:
             if key in obj and isinstance(obj[key], pd.DataFrame):
                 return obj[key]
-        # single-session dict keyed by session name
         frames = [v for v in obj.values() if isinstance(v, pd.DataFrame)]
         if len(frames) == 1:
             return frames[0]
+        if len(frames) > 1:
+            raise TypeError(
+                f"Raw session pickle holds {len(frames)} DataFrames; expected one. "
+                "This looks like a multi-session export — split it per session first."
+            )
+        # Recurse into nested per-session dicts (the current layout).
+        nested = [_coerce_frame(v, _depth + 1) for v in obj.values()
+                  if isinstance(v, dict)]
+        if len(nested) == 1:
+            return nested[0]
+        if len(nested) > 1:
+            raise TypeError(
+                f"Raw session pickle holds {len(nested)} sessions; expected one. "
+                "Load the session you want directly."
+            )
     raise TypeError(f"Cannot coerce raw session object of type {type(obj)} to DataFrame")
 
 

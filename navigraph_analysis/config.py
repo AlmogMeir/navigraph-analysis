@@ -49,6 +49,9 @@ class ProjectConfig:
     paths: Dict[str, Optional[Path]]
     ports_config: Optional[Path]
     source_file: Path = field(repr=False)
+    # Per-subject spans of special sessions, for cross-session figures. See
+    # navigraph_analysis.viz.sessions.annotate_date_ranges.
+    date_annotations: Dict[str, List[dict]] = field(default_factory=dict)
 
     # -- constants convenience accessors -------------------------------------
     @property
@@ -138,6 +141,10 @@ class ProjectConfig:
             paths=paths,
             ports_config=_resolve(base, raw.get("ports_config")),
             source_file=src,
+            date_annotations={
+                s: list(spans)
+                for s, spans in (raw.get("date_annotations") or {}).items()
+            },
         )
 
 

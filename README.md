@@ -88,10 +88,10 @@ products["node_df"], products["turn_df"], products["state_features"]
 navigraph_analysis/
   config.py / session.py / columns.py / ports.py   # config, session id/dates, accessors, port maps
   io/        graph, navigraph_output, dlc, spikes, bpod
-  prep/      align -> traversal -> node_tables -> reward   (raw -> canonical tables)
-  behavior/  speed, turns, decision_points, change_of_mind, states, quality
+  prep/      frame_alignment -> corrections -> traversal_fixer -> node_tables -> reward
+  behavior/  speed, turns, decision_points, change_of_mind, states, state_models, quality
   neural/    clock, psth, population, place_cells          (optional layer)
-  viz/       style, maze, raster, trial_context
+  viz/       style, maze, raster, trial_context, sessions
   pipelines/ session_pipeline, cross_session, cli
 config/      project.yaml, ports.yaml
 notebooks/   thin examples that only call the library
@@ -108,8 +108,38 @@ tests/       unit tests for the de-duplicated pure functions
 Dates are accepted in any ordering/separator (`21_08_2025`, `2025-08-21`, …);
 the reward-port map is selected automatically by date via `config/ports.yaml`.
 
+## The per-session prep chain
+
+Frame-level tracking is not trusted straight out of NaviGraph. Four stages run
+before the traversal is reconstructed, in this order, because each one changes
+what the next sees:
+
+1. **`prep.frame_alignment`** — build the frame/trial table from BPOD trial
+   durations, then *verify the video and BPOD clocks agree* by asking how often a
+   reward event finds the animal at the port that paid it. Below 60% it scans for
+   a constant camera-start offset and corrects it. A session that cannot be
+   aligned raises rather than being analysed. The frame *budget* does not detect
+   this — see the module docstring for the four NPC4 sessions that prove it.
+2. **`prep.corrections.smooth_leaf_parent_zigzags`** — a port leaf and its parent
+   are adjacent tiles, so a barely-moving head flickers between them. Each
+   flicker would otherwise read as two extra node visits.
+3. **`prep.corrections.apply_reward_based_correction`** — BPOD knows which port
+   paid and when, so the drinking period is forced onto that port's leaf node.
+   Only sound once step 1 has passed.
+4. **`prep.traversal_fixer`** — reconstruct a graph-legal node/edge sequence with
+   noise smoothing, frame-conserving jump interpolation, validation and
+   diagnostics.
+
+Every stage is individually switchable from `build_tables(...)`, and what each
+one did is returned on `SessionProducts.diagnostics`. The older two-pass
+reconstruction is still available as `traversal_method="two_pass"` for comparison.
+
 ## Relationship to the notebooks
 
 The original NaviGraph notebooks are untouched and remain the reference of record.
 Each module's docstring names the notebook(s) it was distilled from. See
-`MIGRATION.md` for the notebook → module map.
+`MIGRATION.md` for the notebook → module map and for what is deliberately not
+ported.
+
+`session_pipeline.ipynb` has superseded `align_frames_trials.ipynb` upstream and
+is now the reference for the prep chain above.

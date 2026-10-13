@@ -1,6 +1,7 @@
 # Reward-port configuration for the dual-root-tree maze.
 # ------------------------------------------------------------------------------
-# Mirrors PORT_LAYOUTS in align_frames_trials.ipynb (the authoritative source).
+# Mirrors PORT_LAYOUTS in session_pipeline.ipynb (the authoritative source; it
+# superseded align_frames_trials.ipynb).
 #
 # Each subject has a list of layout *periods*: (from, until, ports). Dates are
 # ISO 'YYYY-MM-DD', inclusive; null means open-ended. The first period whose
@@ -21,6 +22,9 @@ port_pairs_by_subject: {}
 
 # Maze structure: parent node -> its grandparent neighbours. A property of the
 # maze graph rather than the wiring, so shared by all subjects.
+# Each entry is [sibling leaf, level-3 parent] -- the parent's neighbours other
+# than its own reward leaf. L48/L49/L415/R410 are only used by the change-of-maze
+# periods below; they follow the same rule, read off FullMazeGrid.pkl.
 grandparents:
   R411: [R523, R35]
   R413: [R527, R36]
@@ -30,6 +34,10 @@ grandparents:
   L412: [L524, L36]
   R44:  [R58,  R32]
   R42:  [R54,  R31]
+  L48:  [L516, L34]
+  L49:  [L519, L34]
+  L415: [L531, L37]
+  R410: [R520, R35]
 
 # Within-patch IMPORTANT decision nodes: the graph junction separating the two
 # goals of each patch. Invariant to any leaf label swap.
@@ -42,9 +50,9 @@ within_patch_nodes:
 # Per-subject, date-ranged port layouts. port number -> {leaf, parents}.
 port_layouts:
   NPC1:
-    # Up to 2025-09-06 — Port 7 = R55, Port 8 = R59
+    # Up to 2025-09-01 -- Port 6 = L525, Port 7 = R55, Port 8 = R59
     - from: null
-      until: "2025-09-06"
+      until: "2025-09-01"
       ports:
         1: { leaf: R522, parents: [R411] }
         2: { leaf: R526, parents: [R413] }
@@ -54,8 +62,34 @@ port_layouts:
         6: { leaf: L525, parents: [L412] }
         7: { leaf: R55,  parents: [R42] }
         8: { leaf: R59,  parents: [R44] }
-    # From 2025-09-07 — Ports 7 and 8 swapped
+    # 2025-09-02 .. 2025-09-06 -- change of maze: Port 6 moved to L518.
+    # Ports 7/8 not yet swapped.
+    - from: "2025-09-02"
+      until: "2025-09-06"
+      ports:
+        1: { leaf: R522, parents: [R411] }
+        2: { leaf: R526, parents: [R413] }
+        3: { leaf: L56,  parents: [L43] }
+        4: { leaf: L510, parents: [L45] }
+        5: { leaf: L521, parents: [L410] }
+        6: { leaf: L518, parents: [L49] }
+        7: { leaf: R55,  parents: [R42] }
+        8: { leaf: R59,  parents: [R44] }
+    # 2025-09-07 .. 2025-09-08 -- still the changed maze (Port 6 = L518) AND
+    # Ports 7/8 now swapped.
     - from: "2025-09-07"
+      until: "2025-09-08"
+      ports:
+        1: { leaf: R522, parents: [R411] }
+        2: { leaf: R526, parents: [R413] }
+        3: { leaf: L56,  parents: [L43] }
+        4: { leaf: L510, parents: [L45] }
+        5: { leaf: L521, parents: [L410] }
+        6: { leaf: L518, parents: [L49] }
+        7: { leaf: R59,  parents: [R44] }
+        8: { leaf: R55,  parents: [R42] }
+    # From 2025-09-09 -- maze back to L525, Ports 7/8 stay swapped
+    - from: "2025-09-09"
       until: null
       ports:
         1: { leaf: R522, parents: [R411] }
@@ -67,9 +101,33 @@ port_layouts:
         7: { leaf: R59,  parents: [R44] }
         8: { leaf: R55,  parents: [R42] }
 
-  # From 2026-04-01 — same maze as NPC1, Ports 3 and 4 swapped
   NPC4:
-    - from: "2026-04-01"
+    # From 2026-03-01 -- same maze as NPC1, Ports 3/4 swapped
+    - from: "2026-03-01"
+      until: "2026-06-16"
+      ports:
+        1: { leaf: R522, parents: [R411] }
+        2: { leaf: R526, parents: [R413] }
+        3: { leaf: L510, parents: [L45] }
+        4: { leaf: L56,  parents: [L43] }
+        5: { leaf: L521, parents: [L410] }
+        6: { leaf: L525, parents: [L412] }
+        7: { leaf: R59,  parents: [R44] }
+        8: { leaf: R55,  parents: [R42] }
+    # 2026-06-17 .. 2026-06-18 -- change of maze: Ports 1, 5 and 6 moved
+    - from: "2026-06-17"
+      until: "2026-06-18"
+      ports:
+        1: { leaf: R521, parents: [R410] }
+        2: { leaf: R526, parents: [R413] }
+        3: { leaf: L510, parents: [L45] }
+        4: { leaf: L56,  parents: [L43] }
+        5: { leaf: L530, parents: [L415] }
+        6: { leaf: L517, parents: [L48] }
+        7: { leaf: R59,  parents: [R44] }
+        8: { leaf: R55,  parents: [R42] }
+    # From 2026-06-19 -- back to the pre-change layout
+    - from: "2026-06-19"
       until: null
       ports:
         1: { leaf: R522, parents: [R411] }

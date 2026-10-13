@@ -7,8 +7,17 @@
 - :mod:`~navigraph_analysis.io.bpod`             BPOD behavioral ``.mat`` (optional)
 """
 
-from .graph import load_maze_graph, node_depth, is_leaf, node_side, maze_level
-from .dlc import load_dlc_pose
+from .graph import (
+    load_maze_graph,
+    node_depth,
+    is_leaf,
+    node_side,
+    maze_level,
+    level_of,
+    patch_of,
+    classify_patch,
+)
+from .dlc import load_dlc_pose, resolve_bodypart, normalize_bodypart_case
 from .navigraph_output import (
     load_raw_session_data,
     load_session_metrics,
@@ -23,7 +32,12 @@ __all__ = [
     "is_leaf",
     "node_side",
     "maze_level",
+    "level_of",
+    "patch_of",
+    "classify_patch",
     "load_dlc_pose",
+    "resolve_bodypart",
+    "normalize_bodypart_case",
     "load_raw_session_data",
     "load_session_metrics",
     "load_table",

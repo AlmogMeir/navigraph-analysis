@@ -55,5 +55,18 @@ paths:
   spikes: ~/Documents/M.Sc/Project/SpikesData          # <spikes>/<DD_MM_YYYY>/
   bpod: ~/Documents/M.Sc/Project/BPODData              # BPOD Session Data .mat
 
+# Spans of sessions that share a special property, marked on every cross-session
+# figure whose x axis is one session per day (see viz/sessions.py). One list per
+# subject; `start` / `end` are inclusive 'DD/MM/YYYY' and either may be omitted to
+# leave that side open. `color` is optional (a palette is cycled otherwise).
+# Sundays are marked automatically and need no entry here.
+date_annotations:
+  NPC1:
+    - { label: "Change of maze", start: "02/09/2025", end: "08/09/2025" }
+  NPC4:
+    - { label: "Pre surgery",                          end: "30/04/2026" }
+    - { label: "Post surgery",   start: "01/05/2026" }
+    - { label: "Change of maze", start: "17/06/2026", end: "18/06/2026" }
+
 # Path to the reward-port configuration (see config/ports.yaml).
 ports_config: ./config/ports.yaml
